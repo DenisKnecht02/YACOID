@@ -3,6 +3,7 @@ package database
 import (
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	"yacoid_server/common"
@@ -17,17 +18,6 @@ import (
 var ErrorDefinitionAlreadyApproved = errors.New("DEFINITION_ALREADY_APPROVED")
 var ErrorDefinitionRejectionNotAnsweredYet = errors.New("DEFINITION_REJECTION_NOT_ANSWERED_YET")
 var ErrorDefinitionRejectionBelongsToAnotherUser = errors.New("DEFINITION_REJECTION_BELONGS_TO_ANOTHER_USER")
-
-type Author struct {
-	ID        primitive.ObjectID `bson:"_id" json:"-"`
-	FirstName string             `bson:"first_name" json:"firstName" validate:"required"`
-	LastName  string             `bson:"last_name" json:"lastName" validate:"required"`
-}
-
-type Source struct {
-	ID      primitive.ObjectID `bson:"_id" json:"-"`
-	Authors []*Author          `bson:"authors" json:"authors" validate:"required,min=1,dive"`
-}
 
 type Rejection struct {
 	ID           primitive.ObjectID `bson:"_id" json:"-"`
@@ -47,7 +37,7 @@ type Definition struct {
 	RejectionLog         *[]*Rejection       `bson:"rejection_log" json:"-"`
 	Title                string              `bson:"title" json:"title" validate:"required"`
 	Content              string              `bson:"content" json:"content" validate:"required"`
-	Source               *Source             `bson:"source" json:"source" validate:"required,dive"`
+	Source               *common.Source      `bson:"source" json:"source" validate:"required,dive"`
 	PublishingDate       time.Time           `bson:"publishing_date" json:"publishingDate" validate:"ISO8601date"`
 	Tags                 *[]string           `bson:"tags" json:"tags"`
 }
@@ -205,7 +195,7 @@ func RejectDefinition(definitionId string, authToken string, content string) err
 
 }
 
-func ChangeDefinition(id string, title *string, content *string, source *Source, tags *[]string, authToken string) error {
+func ChangeDefinition(id string, title *string, content *string, source *common.Source, tags *[]string, authToken string) error {
 
 	definitionObjectId, definitionObjectIdError := primitive.ObjectIDFromHex(id)
 
@@ -233,28 +223,26 @@ func ChangeDefinition(id string, title *string, content *string, source *Source,
 		return ErrorDefinitionRejectionBelongsToAnotherUser
 	}
 
-	fmt.Println(definitionObjectId)
 	filter := bson.M{"_id": definitionObjectId}
 
 	var updateEntries bson.D
 	if title != nil {
-		updateEntries = append(updateEntries, bson.E{"title", title})
+		updateEntries = append(updateEntries, bson.E{Key: "title", Value: title})
 	}
 	if content != nil {
-		updateEntries = append(updateEntries, bson.E{"content", content})
+		updateEntries = append(updateEntries, bson.E{Key: "content", Value: content})
 	}
 	if source != nil {
-		updateEntries = append(updateEntries, bson.E{"source", source})
+		updateEntries = append(updateEntries, bson.E{Key: "source", Value: source})
 	}
 	if tags != nil {
-		updateEntries = append(updateEntries, bson.E{"tags", tags})
+		updateEntries = append(updateEntries, bson.E{Key: "tags", Value: tags})
 	}
 
 	if len(updateEntries) > 0 {
 
-		updateEntries = append(updateEntries, bson.E{"last_submit_change_date", time.Now()})
+		updateEntries = append(updateEntries, bson.E{Key: "last_submit_change_date", Value: time.Now()})
 		update := bson.M{"$set": updateEntries}
-		fmt.Println("UPDATE", update)
 
 		result := definitionsCollection.FindOneAndUpdate(dbContext, filter, update, nil)
 
@@ -290,10 +278,75 @@ func GetDefinitionByObjectId(id primitive.ObjectID) (*Definition, error) {
 
 }
 
-func GetNewestDefinitions(limit int) (*[]*Definition, error) {
+func GetNewestDefinitions(limit int) ([]*Definition, error) {
 
 	options := options.Find().SetSort(bson.M{"creation_date": -1}).SetLimit(int64(limit))
-	return getDefinitions(bson.M{}, options)
+	return getDefinitions(bson.M{"approved": true}, options)
+
+}
+
+func GetDefinitions(pageSize int, page int, definitionFilter *common.DefinitionFilter, sort *interface{}) ([]*Definition, error) {
+
+	if pageSize <= 0 || page <= 0 {
+		return nil, common.ErrorInvalidType
+	}
+
+	options := options.FindOptions{}
+
+	if sort != nil {
+		options.SetSort(*sort)
+	}
+	options.SetLimit(int64(pageSize))
+	options.SetSkip(int64((page - 1) * pageSize))
+
+	filter := CreateFilterQuery(definitionFilter)
+	fmt.Println("FILTER_QUERY")
+	fmt.Println(filter)
+	return getDefinitions(filter, &options)
+
+}
+
+func CreateFilterQuery(filter *common.DefinitionFilter) bson.D {
+
+	query := bson.D{}
+
+	textSearch := ""
+	if filter.Title != nil && len(*filter.Title) > 0 {
+		textSearch = *filter.Title
+	}
+
+	if filter.Content != nil && len(*filter.Content) > 0 {
+		if len(textSearch) > 0 {
+			textSearch += " "
+		}
+		textSearch += *filter.Content
+	}
+
+	if len(textSearch) > 0 {
+		query = append(query, bson.E{Key: "$text", Value: bson.D{{Key: "$search", Value: textSearch}}})
+	}
+
+	if filter.Tags != nil {
+		query = append(query, bson.E{Key: "tags", Value: bson.D{{Key: "$in", Value: *filter.Tags}}})
+	}
+
+	// TODO: Sources, Authors, PublishingDates
+
+	// bson.D{{Key: "title", Value: bson.D{{Key: "$regex", Value: primitive.Regex{Pattern: *filter.Title, Options: "i"}}}}}
+	return query
+
+}
+
+func GetPageCount(pageSize int, filter interface{}) (int64, error) {
+
+	count, err := definitionsCollection.CountDocuments(dbContext, filter, nil)
+	pageCount := int64(math.Ceil(float64(count) / float64(pageSize)))
+
+	if err != nil {
+		return 0, err
+	}
+
+	return pageCount, nil
 
 }
 
@@ -312,14 +365,15 @@ func getDefinition(filter interface{}, options *options.FindOneOptions) (*Defini
 	return &definition, nil
 }
 
-func getDefinitions(filter interface{}, options *options.FindOptions) (*[]*Definition, error) {
+func getDefinitions(filter interface{}, options *options.FindOptions) ([]*Definition, error) {
 
 	cursor, err := definitionsCollection.Find(dbContext, filter, options)
 
 	if err != nil {
-		defer cursor.Close(dbContext)
 		return nil, err
 	}
+
+	defer cursor.Close(dbContext)
 
 	definitions := []*Definition{}
 
@@ -335,6 +389,6 @@ func getDefinitions(filter interface{}, options *options.FindOptions) (*[]*Defin
 		definitions = append(definitions, &definition)
 	}
 
-	return &definitions, nil
+	return definitions, nil
 
 }

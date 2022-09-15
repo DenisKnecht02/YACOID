@@ -37,12 +37,13 @@ func GetErrorCode(err error) int {
 
 }
 
-// TODO: Pagination, Filter
+// TODO: Filter, Sort
 
 func main() {
 
 	ErrorCodeMap[database.InvalidID] = fiber.StatusBadRequest
 	ErrorCodeMap[common.ValidationError] = fiber.StatusBadRequest
+	ErrorCodeMap[common.ErrorInvalidType] = fiber.StatusBadRequest
 
 	ErrorCodeMap[database.ErrorUserNotFound] = fiber.StatusNotFound
 	ErrorCodeMap[database.ErrorNotEnoughPermissions] = fiber.StatusUnauthorized
@@ -50,6 +51,8 @@ func main() {
 	ErrorCodeMap[database.ErrorPasswordResetExpiryDateExceeded] = fiber.StatusBadRequest
 	ErrorCodeMap[database.ErrorUserAlreadyExists] = fiber.StatusBadRequest
 	ErrorCodeMap[database.ErrorUserAlreadyLoggedIn] = fiber.StatusBadRequest
+	ErrorCodeMap[ErrorEmailVerification] = fiber.StatusBadRequest
+	ErrorCodeMap[ErrorChangePassword] = fiber.StatusBadRequest
 
 	ErrorCodeMap[database.ErrorDefinitionNotFound] = fiber.StatusNotFound
 	ErrorCodeMap[database.ErrorDefinitionAlreadyApproved] = fiber.StatusBadRequest
@@ -415,24 +418,7 @@ func AddDefinitionRequests(definitionApi *fiber.Router, validate *validator.Vali
 
 	(*definitionApi).Get("/newest_definitions/:limit?", func(ctx *fiber.Ctx) error {
 
-		limitParam := ctx.Params("limit")
-		var limit int
-
-		if len(limitParam) == 0 {
-			limit = 4
-		} else {
-			tempLimit, err := strconv.Atoi(limitParam)
-
-			if err != nil {
-				return ctx.Status(GetErrorCode(err)).JSON(fiber.Map{
-					"error":       "INVALID_LIMIT",
-					"definitions": nil,
-				})
-			}
-
-			limit = tempLimit
-
-		}
+		limit := GetOptionalIntParam(ctx.Params("limit"), 4)
 
 		definitions, err := database.GetNewestDefinitions(limit)
 
@@ -449,6 +435,91 @@ func AddDefinitionRequests(definitionApi *fiber.Router, validate *validator.Vali
 		})
 
 	})
+
+	(*definitionApi).Get("/page_count/:page_size?", func(ctx *fiber.Ctx) error {
+
+		pageSize := GetOptionalIntParam(ctx.Params("page_size"), 4)
+		count, err := database.GetPageCount(pageSize, bson.M{})
+
+		if err != nil {
+			return ctx.Status(GetErrorCode(err)).JSON(fiber.Map{
+				"error": err.Error(),
+				"count": nil,
+			})
+		}
+
+		return ctx.JSON(fiber.Map{
+			"error": nil,
+			"count": count,
+		})
+
+	})
+
+	(*definitionApi).Post("/page", func(ctx *fiber.Ctx) error {
+
+		input := new(DefinitionPageRequest)
+
+		if err := ctx.BodyParser(input); err != nil {
+			return ctx.Status(GetErrorCode(err)).JSON(fiber.Map{
+				"error":      err.Error(),
+				"definition": nil,
+			})
+		}
+
+		fmt.Println(input)
+		validateErrors := input.Validate(validate)
+
+		if validateErrors != nil {
+			return ctx.Status(GetErrorCode(common.ValidationError)).JSON(fiber.Map{
+				"error":      "Error on fields: " + strings.Join(validateErrors, ", "),
+				"definition": nil,
+			})
+		}
+
+		definitions, err := database.GetDefinitions(input.PageSize, input.Page, input.Filter, input.Sort)
+
+		if err != nil {
+			return ctx.Status(GetErrorCode(err)).JSON(fiber.Map{
+				"error":       err.Error(),
+				"definitions": nil,
+			})
+		}
+
+		return ctx.JSON(fiber.Map{
+			"error":       nil,
+			"definitions": definitions,
+		})
+
+	})
+
+}
+
+func GetOptionalIntParam(stringValue string, defaultValue int) int {
+
+	if len(stringValue) == 0 {
+		return defaultValue
+	} else {
+		tempLimit, err := strconv.Atoi(stringValue)
+
+		if err != nil {
+			return defaultValue
+		}
+
+		return tempLimit
+
+	}
+
+}
+
+type DefinitionPageRequest struct {
+	PageSize int                      `json:"pageSize" validate:"required"`
+	Page     int                      `json:"page" validate:"required,min=1"`
+	Filter   *common.DefinitionFilter `json:"filter" validate:"omitempty,dive"`
+	Sort     *interface{}             `json:"sort"`
+}
+
+func (DefinitionPageRequest *DefinitionPageRequest) Validate(validate *validator.Validate) []string {
+	return common.ValidateStruct(DefinitionPageRequest, validate)
 }
 
 type RejectRequest struct {
@@ -461,12 +532,12 @@ func (rejection *RejectRequest) Validate(validate *validator.Validate) []string 
 }
 
 type ChangeDefinitionRequest struct {
-	ID             string           `json:"id" validate:"required"`
-	Title          *string          `json:"title"`
-	Content        *string          `json:"content"`
-	Source         *database.Source `json:"source" validate:"omitempty,dive"`
-	PublishingDate *time.Time       `json:"publishingDate" validate:"omitempty,ISO8601date"`
-	Tags           *[]string        `json:"tags"`
+	ID             string         `json:"id" validate:"required"`
+	Title          *string        `json:"title"`
+	Content        *string        `json:"content"`
+	Source         *common.Source `json:"source" validate:"omitempty,dive"`
+	PublishingDate *time.Time     `json:"publishingDate" validate:"omitempty,ISO8601date"`
+	Tags           *[]string      `json:"tags"`
 }
 
 func (rejection *ChangeDefinitionRequest) Validate(validate *validator.Validate) []string {

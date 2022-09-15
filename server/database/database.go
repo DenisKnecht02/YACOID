@@ -51,7 +51,15 @@ func Connect(address string, port int) (context.Context, *mongo.Client) {
 
 	fmt.Println("Successfully connected to database!")
 	database = client.Database("YACOID")
+
+	database.CreateCollection(dbContext, "definitions")
+
 	definitionsCollection = database.Collection("definitions")
+	definitionsCollection.Indexes().CreateOne(dbContext, mongo.IndexModel{
+		Keys: bson.D{{Key: "title", Value: "text"}, {Key: "content", Value: "text"}},
+	})
+
+	database.CreateCollection(dbContext, "user")
 	userCollection = database.Collection("user")
 
 	return dbContext, client
