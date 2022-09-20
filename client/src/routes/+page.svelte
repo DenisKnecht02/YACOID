@@ -1,2 +1,81 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script lang="ts">
+	import QuoteCardShort from '../components/QuoteCardShort.svelte';
+	import Header from '../components/Header.svelte';
+	import Footer from '../components/Footer.svelte';
+	import StatisticCard from '../components/StatisticCard.svelte';
+</script>
+
+<Header />
+
+<div class="flex flex-col items-center m-10">
+	<h1 class="text-6xl font-bold mt-12 mb-4">Welcome to YACOID!</h1>
+
+	<div class="grid grid-cols-2 gap-x-32 gap-y-6 mt-10 mb-48">
+		<StatisticCard
+			stat_title="Definitions"
+			stat_value="1033"
+			stat_description="↗︎ 45 (4%)"
+			svg_description="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+		/>
+		<StatisticCard
+			stat_title="Categories"
+			stat_value="12"
+			stat_description="↗︎ 3 (25%)"
+			svg_description="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+		/>
+		<StatisticCard
+			stat_title="Authors"
+			stat_value="568"
+			stat_description="↗︎ 91 (16%)"
+			svg_description="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+		/>
+		<StatisticCard
+			stat_title="Sources"
+			stat_value="321"
+			stat_description="↗︎ 15 (5%)"
+			svg_description="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+		/>
+	</div>
+
+	<h1 class="text-4xl font-bold mb-6">SEE OUR NEWEST DEFINITIONS!</h1>
+
+	<div class="flex flex-col">
+		<div class="grid grid-cols-2 gap-8">
+			<QuoteCardShort
+				category="Machine Intelligence"
+				quote="Artificial Intelligence is […] the study of the computations that make it possible to perceive, reason, and act."
+				author="Winston, P.H."
+				publishing_date="1992"
+			/>
+
+			<QuoteCardShort
+				category="Machine Intelligence"
+				quote="Artificial Intelligence is […] the study of the computations that make it possible to perceive, reason, and act."
+				author="Winston, P.H."
+				publishing_date="1992"
+			/>
+
+			<QuoteCardShort
+				category="Machine Intelligence"
+				quote="Artificial Intelligence is […] the study of the computations that make it possible to perceive, reason, and act."
+				author="Winston, P.H."
+				publishing_date="1992"
+			/>
+
+			<QuoteCardShort
+				category="Machine Intelligence"
+				quote="Artificial Intelligence is […] the study of the computations that make it possible to perceive, reason, and act."
+				author="Winston, P.H."
+				publishing_date="1992"
+			/>
+		</div>
+		<div class="flex my-6 justify-end">
+			<button class="btn btn-secondary">see all definitions</button>
+		</div>
+	</div>
+</div>
+
+<Footer />
+
+<style lang="postcss">
+</style>
