@@ -19,6 +19,8 @@ var database *mongo.Database
 
 var definitionsCollection *mongo.Collection
 var userCollection *mongo.Collection
+var authorsCollection *mongo.Collection
+var sourcesCollection *mongo.Collection
 
 var InvalidID = errors.New("INVALID_ID")
 
@@ -61,6 +63,9 @@ func Connect(address string, port int) (context.Context, *mongo.Client) {
 
 	database.CreateCollection(dbContext, "user")
 	userCollection = database.Collection("user")
+
+	authorsCollection = database.Collection("authors")
+	sourcesCollection = database.Collection("sources")
 
 	return dbContext, client
 }

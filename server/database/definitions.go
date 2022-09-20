@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"yacoid_server/common"
+	"yacoid_server/types"
 
-	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -35,28 +35,26 @@ type Definition struct {
 	ApprovedDate         *time.Time          `bson:"approved_date" json:"approvedDate"`
 	Approved             bool                `bson:"approved" json:"approved"`
 	RejectionLog         *[]*Rejection       `bson:"rejection_log" json:"-"`
-	Title                string              `bson:"title" json:"title" validate:"required"`
-	Content              string              `bson:"content" json:"content" validate:"required"`
-	Source               *common.Source      `bson:"source" json:"source" validate:"required,dive"`
-	PublishingDate       time.Time           `bson:"publishing_date" json:"publishingDate" validate:"ISO8601date"`
+	Title                string              `bson:"title" json:"title"`
+	Content              string              `bson:"content" json:"content"`
+	Source               primitive.ObjectID  `bson:"source" json:"source"`
+	PublishingDate       time.Time           `bson:"publishing_date" json:"publishingDate"`
 	Tags                 *[]string           `bson:"tags" json:"tags"`
-}
-
-func (definition *Definition) Validate(validate *validator.Validate) []string {
-	return common.ValidateStruct(definition, validate)
 }
 
 func (definition *Definition) IsApproved() bool {
 	return definition.ApprovedBy != nil && definition.ApprovedDate != nil
 }
 
-func SubmitDefinition(definition *Definition, authToken string) (*Definition, error) {
+func SubmitDefinition(request *types.SubmitDefinitionRequest, authToken string) (*Definition, error) {
 
 	user, userError := GetUserByAuthToken(authToken)
 
 	if userError != nil {
 		return nil, userError
 	}
+
+	var definition Definition
 
 	now := time.Now()
 	definition.ID = primitive.NewObjectID()
@@ -66,6 +64,25 @@ func SubmitDefinition(definition *Definition, authToken string) (*Definition, er
 	definition.ApprovedBy = nil
 	definition.ApprovedDate = nil
 	definition.Approved = false
+
+	definition.Title = request.Title
+	definition.Content = request.Content
+	definition.Tags = request.Tags
+	definition.PublishingDate = request.PublishingDate
+
+	sourceId, sourceIdError := primitive.ObjectIDFromHex(request.Source)
+
+	if sourceIdError != nil {
+		return nil, sourceIdError
+	}
+
+	sourceExistsError := validateSourceExists(sourceId)
+
+	if sourceExistsError != nil {
+		return nil, sourceExistsError
+	}
+
+	definition.Source = sourceId
 
 	rejectionLog := []*Rejection{}
 	definition.RejectionLog = &rejectionLog
@@ -81,7 +98,14 @@ func SubmitDefinition(definition *Definition, authToken string) (*Definition, er
 		return nil, err
 	}
 
-	return definition, nil
+	return &definition, nil
+
+}
+
+func validateSourceExists(id primitive.ObjectID) error {
+
+	_, err := GetSource(id)
+	return err
 
 }
 

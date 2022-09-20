@@ -38,6 +38,7 @@ func (user *User) Validate(validate *validator.Validate) []string {
 
 var ErrorUnknown = errors.New("UNKNOWN_ERROR")
 var ErrorInvalidCredentials = errors.New("INVALID_CREDENTIALS")
+var ErrorInvalidAuthToken = errors.New("INVALID_AUTH_TOKEN")
 var ErrorUserAlreadyExists = errors.New("USER_ALREADY_EXISTS")
 var ErrorUserAlreadyLoggedIn = errors.New("USER_ALREADY_LOGGED_IN")
 var ErrorUserNotLoggedIn = errors.New("USER_NOT_LOGGED_IN")
@@ -287,7 +288,15 @@ func GetUserByEmail(email string) (*User, error) {
 func GetUserByAuthToken(authToken string) (*User, error) {
 
 	filter := bson.M{"auth_token": authToken}
-	return GetUserByFilter(filter)
+	user, err := GetUserByFilter(filter)
+
+	if err != nil {
+		if err == ErrorUserNotFound {
+			return nil, ErrorInvalidAuthToken
+		}
+		return nil, err
+	}
+	return user, nil
 
 }
 

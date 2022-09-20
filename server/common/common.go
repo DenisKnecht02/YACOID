@@ -10,6 +10,7 @@ import (
 
 var ValidationError = errors.New("INVALID_INPUT")
 var ErrorInvalidType = errors.New("INVALID_TYPE")
+var ErrorNotFound = errors.New("ENTITY_NOT_FOUND")
 
 func ValidateStruct(s interface{}, validate *validator.Validate) []string {
 
@@ -30,15 +31,25 @@ func ValidateStruct(s interface{}, validate *validator.Validate) []string {
 }
 
 type Author struct {
-	ID        primitive.ObjectID `bson:"_id" json:"-"`
-	FirstName string             `bson:"first_name" json:"firstName" validate:"required"`
-	LastName  string             `bson:"last_name" json:"lastName" validate:"required"`
+	ID            primitive.ObjectID `bson:"_id" json:"-"`
+	SlugId        string             `bson:"slug_id" json:"slugId"`
+	SubmittedBy   primitive.ObjectID `bson:"submitted_by" json:"submittedBy"`
+	SubmittedDate time.Time          `bson:"submitted_date" json:"submittedDate"`
+	FirstName     string             `bson:"first_name" json:"firstName"`
+	LastName      string             `bson:"last_name" json:"lastName"`
 }
 
 type Source struct {
-	ID      primitive.ObjectID `bson:"_id" json:"-"`
-	Authors []*Author          `bson:"authors" json:"authors" validate:"required,min=1,dive"`
+	ID            primitive.ObjectID   `bson:"_id" json:"-"`
+	SubmittedBy   primitive.ObjectID   `bson:"submitted_by" json:"submittedBy"`
+	SubmittedDate time.Time            `bson:"submitted_date" json:"submittedDate"`
+	Authors       []primitive.ObjectID `bson:"authors" json:"authors" validate:"required,min=1"`
 }
+
+func (author *Source) Validate(validate *validator.Validate) []string {
+	return ValidateStruct(author, validate)
+}
+
 type DefinitionFilter struct {
 	Title           *string      `json:"title" bson:"title" validate:"omitempty"`
 	Content         *string      `json:"content" bson:"content" validate:"omitempty"`

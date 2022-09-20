@@ -10,6 +10,7 @@ import (
 
 	"yacoid_server/common"
 	"yacoid_server/database"
+	"yacoid_server/types"
 
 	validator "github.com/go-playground/validator/v10"
 	fiber "github.com/gofiber/fiber/v2"
@@ -44,6 +45,7 @@ func main() {
 	ErrorCodeMap[database.InvalidID] = fiber.StatusBadRequest
 	ErrorCodeMap[common.ValidationError] = fiber.StatusBadRequest
 	ErrorCodeMap[common.ErrorInvalidType] = fiber.StatusBadRequest
+	ErrorCodeMap[common.ErrorNotFound] = fiber.StatusBadRequest
 
 	ErrorCodeMap[database.ErrorUserNotFound] = fiber.StatusNotFound
 	ErrorCodeMap[database.ErrorNotEnoughPermissions] = fiber.StatusUnauthorized
@@ -73,6 +75,12 @@ func main() {
 
 	definitionApi := api.Group("/definitions")
 	AddDefinitionRequests(&definitionApi, validate)
+
+	authorApi := api.Group("/authors")
+	AddAuthorsRequests(&authorApi, validate)
+
+	sourceApi := api.Group("/sources")
+	AddSourcesRequests(&sourceApi, validate)
 
 	authApi := api.Group("/auth")
 	AddAuthRequests(&authApi, validate)
@@ -249,6 +257,76 @@ func AddUserRequests(userApi *fiber.Router, validate *validator.Validate) {
 	})
 }
 
+func AddAuthorsRequests(authorApi *fiber.Router, validate *validator.Validate) {
+
+	(*authorApi).Post("/create", func(ctx *fiber.Ctx) error {
+
+		request := new(types.CreateAuthorRequest)
+
+		if err := ctx.BodyParser(request); err != nil {
+			return ctx.Status(GetErrorCode(err)).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+
+		validateErrors := request.Validate(validate)
+
+		if validateErrors != nil {
+			return ctx.Status(GetErrorCode(common.ValidationError)).JSON(fiber.Map{
+				"error": "Error on fields: " + strings.Join(validateErrors, ", "),
+			})
+		}
+
+		authToken := ctx.GetReqHeaders()["Authtoken"]
+		err := database.CreateAuthor(request, authToken)
+		if err != nil {
+			return ctx.Status(GetErrorCode(err)).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+
+		return ctx.JSON(fiber.Map{
+			"error": nil,
+		})
+	})
+
+}
+
+func AddSourcesRequests(sourceApi *fiber.Router, validate *validator.Validate) {
+
+	(*sourceApi).Post("/create", func(ctx *fiber.Ctx) error {
+
+		request := new(types.CreateSourceRequest)
+
+		if err := ctx.BodyParser(request); err != nil {
+			return ctx.Status(GetErrorCode(err)).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+
+		validateErrors := request.Validate(validate)
+
+		if validateErrors != nil {
+			return ctx.Status(GetErrorCode(common.ValidationError)).JSON(fiber.Map{
+				"error": "Error on fields: " + strings.Join(validateErrors, ", "),
+			})
+		}
+
+		authToken := ctx.GetReqHeaders()["Authtoken"]
+		err := database.CreateSource(request, authToken)
+		if err != nil {
+			return ctx.Status(GetErrorCode(err)).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+
+		return ctx.JSON(fiber.Map{
+			"error": nil,
+		})
+	})
+
+}
+
 func AddDefinitionRequests(definitionApi *fiber.Router, validate *validator.Validate) {
 
 	(*definitionApi).Get("/definition/:id", func(ctx *fiber.Ctx) error {
@@ -259,8 +337,7 @@ func AddDefinitionRequests(definitionApi *fiber.Router, validate *validator.Vali
 
 		if err != nil {
 			return ctx.Status(GetErrorCode(err)).JSON(fiber.Map{
-				"error":      err.Error(),
-				"definition": nil,
+				"error": err.Error(),
 			})
 		}
 
@@ -273,16 +350,16 @@ func AddDefinitionRequests(definitionApi *fiber.Router, validate *validator.Vali
 
 	/*(*definitionApi).Post("/definition", func(ctx *fiber.Ctx) error {
 
-		input := new(database.Definition)
+		request := new(database.Definition)
 
-		if err := ctx.BodyParser(input); err != nil {
+		if err := ctx.BodyParser(request); err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": err,
 				"definition": nil,
 			})
 		}
 
-		definition, err := database.CreateDefinition(input)
+		definition, err := database.CreateDefinition(request)
 		if err != nil {
 			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": err.Error(),
@@ -298,30 +375,27 @@ func AddDefinitionRequests(definitionApi *fiber.Router, validate *validator.Vali
 
 	(*definitionApi).Post("/submit", func(ctx *fiber.Ctx) error {
 
-		input := new(database.Definition)
+		request := new(types.SubmitDefinitionRequest)
 
-		if err := ctx.BodyParser(input); err != nil {
+		if err := ctx.BodyParser(request); err != nil {
 			return ctx.Status(GetErrorCode(err)).JSON(fiber.Map{
-				"error":      err.Error(),
-				"definition": nil,
+				"error": err.Error(),
 			})
 		}
 
-		validateErrors := input.Validate(validate)
+		validateErrors := request.Validate(validate)
 
 		if validateErrors != nil {
 			return ctx.Status(GetErrorCode(common.ValidationError)).JSON(fiber.Map{
-				"error":      "Error on fields: " + strings.Join(validateErrors, ", "),
-				"definition": nil,
+				"error": "Error on fields: " + strings.Join(validateErrors, ", "),
 			})
 		}
 
 		authToken := ctx.GetReqHeaders()["Authtoken"]
-		definition, err := database.SubmitDefinition(input, authToken)
+		definition, err := database.SubmitDefinition(request, authToken)
 		if err != nil {
 			return ctx.Status(GetErrorCode(err)).JSON(fiber.Map{
-				"error":      err.Error(),
-				"definition": nil,
+				"error": err.Error(),
 			})
 		}
 
@@ -352,26 +426,24 @@ func AddDefinitionRequests(definitionApi *fiber.Router, validate *validator.Vali
 
 	(*definitionApi).Post("/reject", func(ctx *fiber.Ctx) error {
 
-		input := new(RejectRequest)
+		request := new(types.RejectRequest)
 
-		if err := ctx.BodyParser(input); err != nil {
+		if err := ctx.BodyParser(request); err != nil {
 			return ctx.Status(GetErrorCode(err)).JSON(fiber.Map{
-				"error":      err.Error(),
-				"definition": nil,
+				"error": err.Error(),
 			})
 		}
 
-		validateErrors := input.Validate(validate)
+		validateErrors := request.Validate(validate)
 
 		if validateErrors != nil {
 			return ctx.Status(GetErrorCode(common.ValidationError)).JSON(fiber.Map{
-				"error":      "Error on fields: " + strings.Join(validateErrors, ", "),
-				"definition": nil,
+				"error": "Error on fields: " + strings.Join(validateErrors, ", "),
 			})
 		}
 
 		authToken := ctx.GetReqHeaders()["Authtoken"]
-		err := database.RejectDefinition(input.ID, authToken, input.Content)
+		err := database.RejectDefinition(request.ID, authToken, request.Content)
 		if err != nil {
 			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": err.Error(),
@@ -385,26 +457,24 @@ func AddDefinitionRequests(definitionApi *fiber.Router, validate *validator.Vali
 
 	(*definitionApi).Post("/change", func(ctx *fiber.Ctx) error {
 
-		input := new(ChangeDefinitionRequest)
+		request := new(types.ChangeDefinitionRequest)
 
-		if err := ctx.BodyParser(input); err != nil {
+		if err := ctx.BodyParser(request); err != nil {
 			return ctx.Status(GetErrorCode(err)).JSON(fiber.Map{
-				"error":      err.Error(),
-				"definition": nil,
+				"error": err.Error(),
 			})
 		}
 
-		validateErrors := input.Validate(validate)
+		validateErrors := request.Validate(validate)
 
 		if validateErrors != nil {
 			return ctx.Status(GetErrorCode(common.ValidationError)).JSON(fiber.Map{
-				"error":      "Error on fields: " + strings.Join(validateErrors, ", "),
-				"definition": nil,
+				"error": "Error on fields: " + strings.Join(validateErrors, ", "),
 			})
 		}
 
 		authToken := ctx.GetReqHeaders()["Authtoken"]
-		err := database.ChangeDefinition(input.ID, input.Title, input.Content, input.Source, input.Tags, authToken)
+		err := database.ChangeDefinition(request.ID, request.Title, request.Content, request.Source, request.Tags, authToken)
 		if err != nil {
 			return ctx.Status(GetErrorCode(err)).JSON(fiber.Map{
 				"error": err.Error(),
@@ -457,26 +527,24 @@ func AddDefinitionRequests(definitionApi *fiber.Router, validate *validator.Vali
 
 	(*definitionApi).Post("/page", func(ctx *fiber.Ctx) error {
 
-		input := new(DefinitionPageRequest)
+		request := new(types.DefinitionPageRequest)
 
-		if err := ctx.BodyParser(input); err != nil {
+		if err := ctx.BodyParser(request); err != nil {
 			return ctx.Status(GetErrorCode(err)).JSON(fiber.Map{
-				"error":      err.Error(),
-				"definition": nil,
+				"error": err.Error(),
 			})
 		}
 
-		fmt.Println(input)
-		validateErrors := input.Validate(validate)
+		fmt.Println(request)
+		validateErrors := request.Validate(validate)
 
 		if validateErrors != nil {
 			return ctx.Status(GetErrorCode(common.ValidationError)).JSON(fiber.Map{
-				"error":      "Error on fields: " + strings.Join(validateErrors, ", "),
-				"definition": nil,
+				"error": "Error on fields: " + strings.Join(validateErrors, ", "),
 			})
 		}
 
-		definitions, err := database.GetDefinitions(input.PageSize, input.Page, input.Filter, input.Sort)
+		definitions, err := database.GetDefinitions(request.PageSize, request.Page, request.Filter, request.Sort)
 
 		if err != nil {
 			return ctx.Status(GetErrorCode(err)).JSON(fiber.Map{
@@ -509,39 +577,6 @@ func GetOptionalIntParam(stringValue string, defaultValue int) int {
 
 	}
 
-}
-
-type DefinitionPageRequest struct {
-	PageSize int                      `json:"pageSize" validate:"required"`
-	Page     int                      `json:"page" validate:"required,min=1"`
-	Filter   *common.DefinitionFilter `json:"filter" validate:"omitempty,dive"`
-	Sort     *interface{}             `json:"sort"`
-}
-
-func (DefinitionPageRequest *DefinitionPageRequest) Validate(validate *validator.Validate) []string {
-	return common.ValidateStruct(DefinitionPageRequest, validate)
-}
-
-type RejectRequest struct {
-	ID      string `json:"id" validate:"required"`
-	Content string `json:"content" validate:"required,min=1"`
-}
-
-func (rejection *RejectRequest) Validate(validate *validator.Validate) []string {
-	return common.ValidateStruct(rejection, validate)
-}
-
-type ChangeDefinitionRequest struct {
-	ID             string         `json:"id" validate:"required"`
-	Title          *string        `json:"title"`
-	Content        *string        `json:"content"`
-	Source         *common.Source `json:"source" validate:"omitempty,dive"`
-	PublishingDate *time.Time     `json:"publishingDate" validate:"omitempty,ISO8601date"`
-	Tags           *[]string      `json:"tags"`
-}
-
-func (rejection *ChangeDefinitionRequest) Validate(validate *validator.Validate) []string {
-	return common.ValidateStruct(rejection, validate)
 }
 
 func IsISO8601Date(field validator.FieldLevel) bool {
