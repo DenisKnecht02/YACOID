@@ -1,16 +1,28 @@
-<script lang="ts">
+<script lang="ts" src='https://kit.fontawesome.com/a076d05399.js' crossorigin='anonymous'>
 	import { goto } from '$app/navigation';
-
+  import FilteringAuthorModal from './FilteringAuthorModal.svelte';
+	import NavList from './NavList.svelte';
 	function changeRoute(href: string) {
 		goto('/' + href);
 	}
+
 </script>
+
 
 <header>
 	<div class="flex flex-wrap w-full justify-between">
 		<h1 class="text-4xl font-bold">YACOID</h1>
-		<div class="flex gap-2">
-			<button class="btn btn-disabled">Submissions</button>
+    <label class="peer sm:hidden btn modal-button">Menu</label>
+    <div class="gap-2 hidden peer-hover:flex peer-hover:justify-center">
+			<button class="btn btn-secondary" on:click={() => changeRoute('definitions/submissions')}>Sub</button>
+			<button class="btn btn-secondary" on:click={() => changeRoute('definitions')}
+				>All</button
+			>
+			<button class="btn btn-secondary" on:click={() => changeRoute('about_us')}>Ab</button>
+			<button class="btn btn-secondary" on:click={() => changeRoute('login')}>Lo</button>
+		</div>
+		<div class="gap-2 hidden sm:flex">
+			<button class="btn btn-secondary" on:click={() => changeRoute('definitions/submissions')}>Submissions</button>
 			<button class="btn btn-secondary" on:click={() => changeRoute('definitions')}
 				>All Definitions</button
 			>
