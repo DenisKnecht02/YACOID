@@ -38,8 +38,8 @@
         </label>
         <textarea placeholder="Difinition..." class="input input-bordered col-span-2 h-40" />
       </div>
-      <div class="form-control mt-6 grid grid-cols-3 gap-4 md:px-8">
-        <input type="submit" class=" btn btn-primary justify-center col-start-3" value="Submit">
+      <div class="form-control mt-6 grid grid-cols-3 lg:grid-cols-5 gap-4 md:px-8">
+        <input type="submit" class=" btn btn-primary justify-center col-start-3 lg:col-start-5" value="Submit">
       </div>
     </form>
   </div>
