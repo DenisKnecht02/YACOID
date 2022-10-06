@@ -11,7 +11,7 @@
 <header>
 	<div class="flex flex-wrap w-full justify-center lg:justify-between">
 		<!-- <h1 class="text-4xl font-bold mb-6">YACOID</h1> -->
-    <img class="w-72" src="/yacoid.png"/>
+    <img class="w-72" src="/yacoid.png" on:click={() => changeRoute('definitions')}/>
 
 		<div class="grid grid-cols-2 gap-2 items-center sm:flex">
 			<button class="btn btn-secondary w-40" on:click={() => changeRoute('definitions/submissions')}>Submissions</button>
