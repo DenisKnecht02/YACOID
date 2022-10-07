@@ -249,7 +249,7 @@
             <li><button>JSON</button></li>
           </ul>
         </div>
-        <button class="btn" on:click={() => changeRoute('definitions/submissions')}
+        <button class="btn" on:click={() => changeRoute('definitions/addDef')}
           >➕ Add definition</button
         >
 			</div>
