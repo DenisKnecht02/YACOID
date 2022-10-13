@@ -6,7 +6,7 @@
 <Header />
 
 <div class="flex flex-col h-full justify-center items-center p-4">
-	<p class="text-2xl font-bold pb-4">Login to YACOID!</p>
+	<p class="text-2xl md:text-3xl font-bold pb-4">Login to YACOID!</p>
 	<!--<p class="text-lg font-medium">To add definitions you need an account</p>-->
 	<div class="card grid place-items-center w-3/4 sm:w-1/2 xl:w-1/4 shadow-2xl bg-base-100">
 		<form class="card-body" action="./">
@@ -32,7 +32,7 @@
 					required
 				/>
 			</div>
-			<div class="form-control mt-6 grid grid-cols-3 lg:grid-cols-5 gap-4 md:px-8">
+			<div class="form-control mt-6 grid grid-cols-3 gap-4 md:px-8">
 				<input
 					type="submit"
 					class=" btn btn-primary justify-center col-start-3 lg:col-start-5"
