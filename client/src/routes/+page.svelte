@@ -1,5 +1,5 @@
 <script lang="ts">
-	import QuoteCardShort from '../components/QuoteCardShort.svelte';
+	import QuoteCard from '../components/QuoteCard.svelte';
 	import Header from '../components/Header.svelte';
 	import Footer from '../components/Footer.svelte';
 	import StatisticCard from '../components/StatisticCard.svelte';
@@ -7,10 +7,10 @@
 
 <Header />
 
-<div class="flex flex-col items-center m-10">
-	<h1 class="text-6xl font-bold mt-12 mb-4">Welcome to YACOID!</h1>
+<div class=" h-full text-center p-4 grid justify-items-center">
+  <h1 class="text-3xl font-bold lg:text-6xl lg:font-bold py-10">WELCOME TO YACOID!</h1>
 
-	<div class="grid grid-cols-2 gap-x-32 gap-y-6 mt-10 mb-48">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 justify-center mt-4 lg:mt-10 mb-8 lg:mb-48 max-w-xl">
 		<StatisticCard
 			stat_title="Definitions"
 			stat_value="1033"
@@ -37,39 +37,39 @@
 		/>
 	</div>
 
-	<h1 class="text-4xl font-bold mb-6">SEE OUR NEWEST DEFINITIONS!</h1>
+	<div class=" h-full text-center p-4">
+    <h1 class="text-3xl font-bold lg:text-5xl lg:font-bold pb-10">SEE OUR NEWEST DEFINITIONS!</h1>
 
-	<div class="flex flex-col">
-		<div class="grid grid-cols-2 gap-8">
-			<QuoteCardShort
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 justify-around">
+			<QuoteCard
 				category="Machine Intelligence"
 				quote="Artificial Intelligence is […] the study of the computations that make it possible to perceive, reason, and act."
 				author="Winston, P.H."
 				publishing_date="1992"
 			/>
 
-			<QuoteCardShort
+			<QuoteCard
 				category="Machine Intelligence"
 				quote="Artificial Intelligence is […] the study of the computations that make it possible to perceive, reason, and act."
 				author="Winston, P.H."
 				publishing_date="1992"
 			/>
 
-			<QuoteCardShort
+			<QuoteCard
 				category="Machine Intelligence"
 				quote="Artificial Intelligence is […] the study of the computations that make it possible to perceive, reason, and act."
 				author="Winston, P.H."
 				publishing_date="1992"
 			/>
 
-			<QuoteCardShort
+			<QuoteCard
 				category="Machine Intelligence"
 				quote="Artificial Intelligence is […] the study of the computations that make it possible to perceive, reason, and act."
 				author="Winston, P.H."
 				publishing_date="1992"
 			/>
 		</div>
-		<div class="flex my-6 justify-end">
+		<div class="flex my-6 justify-center lg:justify-end">
 			<button class="btn btn-secondary">see all definitions</button>
 		</div>
 	</div>

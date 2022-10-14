@@ -12,9 +12,9 @@
         <div class="flex justify-between h-12 items-center">
           {#if action === "true"}
           <div class="badge badge-secondary text-base mb-2 p-3">{category}</div>
-          <div id="forSymbol" class="flex flex-wrap gap-3">
-            <span title="accept" class="text-base">&#128077;</span>
-            <span title="don't accept" class="text-base">&#128078;</span>
+          <div id="forSymbol" class="flex flex-wrap gap-3 items-center">
+            <button title="accept" class="px-2 text-lg bg-green-400 rounded-lg pb-1">👍</button>
+            <button title="don't accept" class="px-2 bg-red-400 rounded-lg py-0.5 text-lg">👎</button>
           </div>
             
           {:else}
