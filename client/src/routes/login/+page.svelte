@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { changeRoute } from '../../utils';
 	import Header from '../../components/Header.svelte';
 	import Footer from '../../components/Footer.svelte';
 </script>
@@ -10,7 +11,7 @@
 	<!--<p class="text-lg font-medium">To add definitions you need an account</p>-->
 	<div class="card grid place-items-center w-3/4 sm:w-1/2 xl:w-1/4 shadow-2xl bg-base-100">
 		<form class="card-body" action="./">
-			<div class="form-control grid grid-cols-3 gap-4 md:px-8">
+			<div class="form-control grid grid-cols-3 gap-4 sm:px-8">
 				<label class="label">
 					<span class="label-text">Email</span>
 				</label>
@@ -21,7 +22,7 @@
 					required
 				/>
 			</div>
-			<div class="form-control grid grid-cols-3 gap-4 md:px-8">
+			<div class="form-control grid grid-cols-3 gap-4 sm:px-8">
 				<label class="label">
 					<span class="label-text">Password</span>
 				</label>
@@ -31,6 +32,13 @@
 					class="input input-bordered col-span-2"
 					required
 				/>
+			</div>
+			<div class="form-control text-center gap-4 sm:px-8">
+				<p style="color:darkgrey; font-size:80%;">
+					Don't have an account yet? Sign in
+					<!-- svelte-ignore a11y-missing-attribute -->
+					<a class="link link-secondary" href="#" on:click={() => changeRoute('sign_in')}> here </a>
+				</p>
 			</div>
 			<div class="form-control mt-6 grid grid-cols-3 gap-4 md:px-8">
 				<input
