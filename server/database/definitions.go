@@ -219,7 +219,7 @@ func RejectDefinition(definitionId string, authToken string, content string) err
 
 }
 
-func ChangeDefinition(id string, title *string, content *string, source *common.Source, tags *[]string, authToken string) error {
+func ChangeDefinition(id string, title *string, content *string, source *types.Source, tags *[]string, authToken string) error {
 
 	definitionObjectId, definitionObjectIdError := primitive.ObjectIDFromHex(id)
 
@@ -309,7 +309,7 @@ func GetNewestDefinitions(limit int) ([]*Definition, error) {
 
 }
 
-func GetDefinitions(pageSize int, page int, definitionFilter *common.DefinitionFilter, sort *interface{}) ([]*Definition, error) {
+func GetDefinitions(pageSize int, page int, definitionFilter *types.DefinitionFilter, sort *interface{}) ([]*Definition, error) {
 
 	if pageSize <= 0 || page <= 0 {
 		return nil, common.ErrorInvalidType
@@ -330,7 +330,7 @@ func GetDefinitions(pageSize int, page int, definitionFilter *common.DefinitionF
 
 }
 
-func CreateFilterQuery(filter *common.DefinitionFilter) bson.D {
+func CreateFilterQuery(filter *types.DefinitionFilter) bson.D {
 
 	query := bson.D{}
 

@@ -18,7 +18,7 @@ func CreateSource(request *types.CreateSourceRequest, authToken string) error {
 		return userError
 	}
 
-	var source common.Source
+	var source types.Source
 
 	source.ID = primitive.NewObjectID()
 	source.SubmittedBy = user.ID
@@ -82,7 +82,7 @@ func validateAuthorsExist(ids *[]primitive.ObjectID) error {
 
 }
 
-func GetSourceById(stringId string) (*common.Source, error) {
+func GetSourceById(stringId string) (*types.Source, error) {
 
 	id, idError := primitive.ObjectIDFromHex(stringId)
 
@@ -94,7 +94,7 @@ func GetSourceById(stringId string) (*common.Source, error) {
 
 }
 
-func GetSource(id primitive.ObjectID) (*common.Source, error) {
+func GetSource(id primitive.ObjectID) (*types.Source, error) {
 
 	filter := bson.M{"_id": id}
 
@@ -107,7 +107,7 @@ func GetSource(id primitive.ObjectID) (*common.Source, error) {
 		return nil, result.Err()
 	}
 
-	var source common.Source
+	var source types.Source
 	decodeError := result.Decode(&source)
 
 	if decodeError != nil {

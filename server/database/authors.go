@@ -21,7 +21,7 @@ func CreateAuthor(request *types.CreateAuthorRequest, authToken string) error {
 		return userError
 	}
 
-	var author common.Author
+	var author types.Author
 
 	author.ID = primitive.NewObjectID()
 	author.SlugId = fmt.Sprintf("%s-%s-%08d", strings.ToLower(request.LastName), strings.ToLower(request.FirstName), rand.Intn(10000000))
@@ -40,7 +40,7 @@ func CreateAuthor(request *types.CreateAuthorRequest, authToken string) error {
 
 }
 
-func GetAuthorById(stringId string) (*common.Author, error) {
+func GetAuthorById(stringId string) (*types.Author, error) {
 
 	id, idError := primitive.ObjectIDFromHex(stringId)
 
@@ -52,7 +52,7 @@ func GetAuthorById(stringId string) (*common.Author, error) {
 
 }
 
-func GetAuthor(id primitive.ObjectID) (*common.Author, error) {
+func GetAuthor(id primitive.ObjectID) (*types.Author, error) {
 
 	filter := bson.M{"_id": id}
 
@@ -65,7 +65,7 @@ func GetAuthor(id primitive.ObjectID) (*common.Author, error) {
 		return nil, result.Err()
 	}
 
-	var author common.Author
+	var author types.Author
 	decodeError := result.Decode(&author)
 
 	if decodeError != nil {

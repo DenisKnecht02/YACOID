@@ -4,7 +4,8 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
-	"strconv"
+	"os"
+	"yacoid_server/constants"
 
 	"context"
 
@@ -28,27 +29,28 @@ var ErrorUserNotFound = errors.New("USER_NOT_FOUND")
 var ErrorDefinitionNotFound = errors.New("DEFINITION_NOT_FOUND")
 var ErrorNotEnoughPermissions = errors.New("NOT_ENOUGH_PERMISSIONS")
 
-func Connect(address string, port int) (context.Context, *mongo.Client) {
+func Connect() error {
 
 	fmt.Println("Connecting to database...")
 
 	dbContext = context.TODO()
+	databaseURL := os.Getenv(constants.EnvKeyMongoDBUrl)
 
-	opts := options.Client().ApplyURI("mongodb://" + address + ":" + strconv.Itoa(port))
+	options := options.Client().ApplyURI(databaseURL)
 
 	var err error
-	client, err = mongo.Connect(dbContext, opts)
+	client, err = mongo.Connect(dbContext, options)
 	if err != nil {
 		fmt.Println("Could not connect to database:")
-		panic(err)
+		return err
 	}
 
 	fmt.Println("Pinging database...")
-	e := client.Ping(dbContext, nil)
+	err = client.Ping(dbContext, nil)
 
-	if e != nil {
+	if err != nil {
 		fmt.Println("Could not ping database:")
-		panic(e)
+		return err
 	}
 
 	fmt.Println("Successfully connected to database!")
@@ -67,7 +69,7 @@ func Connect(address string, port int) (context.Context, *mongo.Client) {
 	authorsCollection = database.Collection("authors")
 	sourcesCollection = database.Collection("sources")
 
-	return dbContext, client
+	return nil
 }
 
 func hash(seed string) string {
@@ -98,7 +100,7 @@ func CreateUpdateDocument(inputs []UpdateEntry) bson.D {
 
 	for _, input := range inputs {
 		if input.value != nil {
-			update = append(update, bson.E{input.field, input.value})
+			update = append(update, bson.E{Key: input.field, Value: input.value})
 		}
 	}
 

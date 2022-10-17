@@ -423,9 +423,9 @@ func ChangeAccountData(authToken string, firstName *string, lastName *string, em
 		fmt.Println("SET EMAIL")
 		temp := uuid.NewString()
 		emailVerificationToken = &temp
-		updateEntries = append(updateEntries, bson.E{"pending_email", email})
-		updateEntries = append(updateEntries, bson.E{"email_verification_token", emailVerificationToken})
-		updateEntries = append(updateEntries, bson.E{"email_verification_token_expiry_date", time.Now().Add(time.Minute * 60 * 24 * 1)})
+		updateEntries = append(updateEntries, bson.E{Key: "pending_email", Value: email})
+		updateEntries = append(updateEntries, bson.E{Key: "email_verification_token", Value: emailVerificationToken})
+		updateEntries = append(updateEntries, bson.E{Key: "email_verification_token_expiry_date", Value: time.Now().Add(time.Minute * 60 * 24 * 1)})
 	}
 
 	/* Handle password change */
@@ -434,7 +434,7 @@ func ChangeAccountData(authToken string, firstName *string, lastName *string, em
 
 		if isCorrectPassword(user, *currentPassword) {
 			fmt.Println("NEW_PASSWORD")
-			updateEntries = append(updateEntries, bson.E{"password_hash", newPassword})
+			updateEntries = append(updateEntries, bson.E{Key: "password_hash", Value: newPassword})
 			response.ChangePassword = &UpdateState{Success: true}
 		} else {
 			fmt.Println("INVALID_CREDENTIALS")
@@ -447,7 +447,7 @@ func ChangeAccountData(authToken string, firstName *string, lastName *string, em
 	fmt.Println("UPDATE_ENTRIES", updateEntries, emailVerificationToken)
 
 	if len(updateEntries) > 0 {
-		update := bson.D{{"$set", updateEntries}}
+		update := bson.D{{Key: "$set", Value: updateEntries}}
 		fmt.Println("UPDATE", update)
 
 		var document bson.D
