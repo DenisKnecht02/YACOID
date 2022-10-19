@@ -1,24 +1,24 @@
-<script lang="ts" src='https://kit.fontawesome.com/a076d05399.js' crossorigin='anonymous'>
-	import { goto } from '$app/navigation';
-  import FilteringAuthorModal from './FilteringAuthorModal.svelte';
+<script lang="ts" src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous">
+	import { changeRoute } from '../utils';
+	import FilteringAuthorModal from './FilteringAuthorModal.svelte';
 	import NavList from './NavList.svelte';
-	function changeRoute(href: string) {
-		goto('/' + href);
-	}
-
 </script>
 
 <header>
 	<div class="flex flex-wrap w-full justify-center lg:justify-between">
 		<!-- <h1 class="text-4xl font-bold mb-6">YACOID</h1> -->
-    <img class="w-72" src="/yacoid.png" on:click={() => changeRoute('./')}/>
+		<img class="w-72" src="/yacoid.png" on:click={() => changeRoute('')} />
 
 		<div class="grid grid-cols-2 gap-2 items-center sm:flex">
-			<button class="btn btn-secondary w-40" on:click={() => changeRoute('definitions/submissions')}>Submissions</button>
+			<button class="btn btn-secondary w-40" on:click={() => changeRoute('definitions/submissions')}
+				>Submissions</button
+			>
 			<button class="btn btn-secondary w-40" on:click={() => changeRoute('definitions')}
 				>All Definitions</button
 			>
-			<button class="btn btn-secondary w-40" on:click={() => changeRoute('about_us')}>About us</button>
+			<button class="btn btn-secondary w-40" on:click={() => changeRoute('about_us')}
+				>About us</button
+			>
 			<button class="btn btn-secondary w-40" on:click={() => changeRoute('login')}>Login</button>
 		</div>
 	</div>
