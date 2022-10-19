@@ -46,6 +46,7 @@
 		</div>
 	</div>
 </header> -->
+
 <style lang="postcss">
 	header {
 		@apply p-4 w-full gap-2 bg-base-200;

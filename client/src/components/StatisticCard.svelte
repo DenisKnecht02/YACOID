@@ -6,7 +6,7 @@
 
 </script>
 
-<div class="stat shadow-md rounded-xl">
+<div class="stat shadow-md rounded-xl justify-self-center">
     <div class="stat-figure text-secondary">
         <svg
             xmlns="http://www.w3.org/2000/svg"
