@@ -218,7 +218,7 @@
 <Header />
 
 <div class="flex flex-col m-6">
-	<div class="navbar bg-gray-100 shadow-lg rounded-lg justify-between">
+	<div class="flex flex-wrap-reverse gap-2 navbar bg-gray-100 shadow-lg rounded-lg justify-center lg:justify-between">
 		<div class="flex gap-2">
 			<!-- The button to open categories modal -->
 			<label for="category-modal" class="btn modal-button">Categories</label>
@@ -231,24 +231,28 @@
 			<!-- The button to open source modal -->
 			<label for="source-modal" class="btn modal-button">Sources</label>
 		</div>
-		<div class="flex gap-2">
-			<input
+		<div class="grid grid-cols-1 md:flex gap-2">
+      <div>
+        <input
 				type="text"
 				placeholder="🔍 Search for definition"
 				class="input w-full max-w-xs"
 				bind:value={searchCriteria}
 				on:input={filterDefinitions}
 			/>
-			<div class="dropdown">
-				<label tabindex="0" class="btn m-1">Export</label>
-				<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-					<li><button>Excel</button></li>
-					<li><button>JSON</button></li>
-				</ul>
+      </div>
+			<div class=" flex gap-2">
+        <div class="dropdown flex gap-2">
+          <label tabindex="0" class="btn lg:m-0">Export</label>
+          <ul tabindex="0" class="dropdown-content menu shadow bg-base-100 rounded-box w-52">
+            <li><button>Excel</button></li>
+            <li><button>JSON</button></li>
+          </ul>
+        </div>
+        <button class="btn" on:click={() => changeRoute('definitions/addDef')}
+          >➕ Add definition</button
+        >
 			</div>
-			<button class="btn" on:click={() => changeRoute('definitions/submissions')}
-				>➕ Add definition</button
-			>
 		</div>
 	</div>
 	<div class="flex flex-col m-6 gap-8">
